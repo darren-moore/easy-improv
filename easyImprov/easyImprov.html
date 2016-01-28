@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html>
+<body>
+Use keyboard keys, second row: asdfghjk.
+
+Only implemented for two choruses.
+</body>
+<script>
+//Title?: "Solo", "Bit Solo", 
+
+var backing = new Audio('backing.mp3'); //from https://www.youtube.com/watch?v=Vi2TcAWQrd4
+
+//var keyToNote = [108]; // C8  == 108
+var noteToKey = [108]; // 108 ==  C8
+
+//Used for noteToKey function.
+function gen(){
+	var A0 = 0x15; // first note
+	var C8 = 0x6C; // last note
+	var number2key = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+	for (var n = A0; n <= C8; n++) {
+		var octave = (n - 12) / 12 >> 0;
+		var name = number2key[n % 12] + octave;
+		//keyToNote[name] = n;
+		noteToKey[n] = name;
+	}
+	return name;
+}
+gen();
+
+var scales = [
+	     [0, 2, 4, 5, 7, 9, 11], //["Major", "Ionian"]
+	     [0, 2, 3, 5, 7, 8, 10], //["natural minor", "Aeolian"] 
+	     [0, 2, 3, 5, 7, 8, 11], //["harmonic minor", "Mohammedan"]
+	     [0, 2, 3, 5, 7, 9, 11], //["melodic minor"]
+	     [0, 2, 4, 7, 9], //["major pentatonic"]
+	     [0, 3, 5, 7, 10], //["minor pentatonic"]
+         [0, 3, 5, 6, 7, 10], //["blues"]
+         [0, 2, 3, 5, 6, 7, 8, 10], //["minor blues"]
+	     [0, 2, 3, 4, 5, 6, 7, 9, 10], //["major blues"]
+	     [0, 2, 4, 6, 8, 10], //["augmented", "whole tone"]
+	     [0, 2, 3, 5, 6, 8, 9, 11], //["diminished"]
+	     [0, 1, 4, 5, 7, 8, 10], //["Phrygian-Dominant", "major Phrygian", "Spanish-flamenco"]
+	     [0, 2, 3, 5, 7, 9, 10], //["Dorian"]
+	     [0, 1, 3, 5, 7, 8, 10], //["Phrygian"]
+	     [0, 2, 4, 6, 7, 9, 11], //["Lydian"]
+	     [0, 2, 4, 5, 7, 9, 10], //["Mixolydian"]
+	     [0, 1, 3, 5, 6, 8, 10], //["Locrian"]
+         [0, 2, 3, 5, 7, 9, 11], //["jazz melodic minor"]
+	     [0, 1, 3, 5, 7, 9, 10], //["Dorian b2"]
+	     [0, 2, 4, 6, 8, 9, 11], //["Lydian augmented"]
+	     [0, 2, 4, 6, 7, 9, 10], //["Lydian b7", "overture"]
+	     [0, 2, 4, 5, 7, 8, 10], //["Mixolydian b13", "Hindu"]
+	     [0, 2, 3, 5, 6, 8, 10], //["Locrian #2"]
+	     [0, 1, 3, 4, 6, 8, 10], //["super Locrian", "altered"]
+	     [0, 2, 3, 5, 6, 8, 9, 11], //["whole half diminished"]
+	     [0, 1, 3, 4, 6, 7, 9, 10], //["half whole diminished"]
+	     [0, 1, 4, 6, 8, 10, 11], //["enigmatic"]
+	     [0, 1, 4, 5, 7, 8, 11], //["double harmonic", "gypsy", "Byzantine"]
+	     [0, 2, 3, 6, 7, 8, 11],  //["Hungarian minor"]
+	     [0, 1, 4, 5, 6, 8, 11], //["Persian"]
+	     [0, 2, 4, 5, 6, 8, 10], // ["Arabian", "major Locrian"]
+	     [0, 1, 5, 7, 8], //["Japanese"]
+	     [0, 2, 5, 7, 10],  //["Egyptian"]
+	     [0, 2, 3, 7, 8]  //["Hirajoshi"]
+    ]
+var scale = 15;
+var key = 60;
+var notes = [108];
+
+function changeKey(newscale, newkey){
+	scale = newscale;
+	key = newkey;
+	console.log("Changed to "+newkey);
+}
+
+//Create array of sounds
+for(var i = 21; i <= 108; i++){
+	notes[i] = new Audio('acoustic_grand_piano-mp3\\'+noteToKey[i]+'.mp3');
+}
+
+//Required to adjust octave.
+function adjustNote(note){
+	if (scales[scale].length <= note){
+		return note - scales[scale].length;
+	}
+	return note;
+}
+
+//Tests if octave adjustment required
+function octaveTest(note){
+		if (adjustNote(note) == note){return 0;}else{return 12;}
+}
+	
+function playIt(note){
+	var newNote = scales[scale][adjustNote(note)];
+	notes[newNote+key+octaveTest(note)].play();
+}
+
+function pauseIt(note){
+	var newNote = scales[scale][adjustNote(note)];
+	notes[newNote+key+octaveTest(note)].pause();
+	notes[newNote+key+octaveTest(note)].load();
+}
+
+//A listener for keys. Allows for multiple keys to be down simultaneously- chords.
+var keyState = {};    
+window.addEventListener('keydown',function(e){
+    keyState[e.keyCode || e.which] = true;
+},true);    
+window.addEventListener('keyup',function(e){
+    keyState[e.keyCode || e.which] = false;
+},true);
+
+
+function gameLoop() {
+	if (!(keyState[65])){
+		
+		pauseIt(0);
+    }
+    else if (keyState[65]){
+	
+		playIt(0);
+    }
+	if (!(keyState[83])){
+		pauseIt(1);
+    }
+	else if (keyState[83]){
+		playIt(1);
+    }
+	if (!(keyState[68])){
+		pauseIt(2);
+    }
+	else if (keyState[68]){
+		playIt(2);
+    }
+	if (!(keyState[70])){
+		pauseIt(3);
+    }
+	else if (keyState[70]){
+		playIt(3);
+    }
+	if (!(keyState[71])){
+		pauseIt(4);
+    }
+	else if (keyState[71]){
+		playIt(4);
+    }
+	if (!(keyState[72])){
+		pauseIt(5);
+    }
+	else if (keyState[72]){
+		playIt(5);
+    }
+	if (!(keyState[74])){
+		pauseIt(6);
+    }
+	else if (keyState[74]){
+		playIt(6);
+    }
+	if (!(keyState[75])){
+		pauseIt(7);
+    }
+	else if (keyState[75]){
+		playIt(7);
+   }
+
+    setTimeout(gameLoop, 10);
+}
+
+
+backing.volume = .2;
+backing.play();
+
+setTimeout(changeKey, 4900, 0, 60); //G ion 67
+setTimeout(changeKey, 6900, 12, 60); //F Dorian 65
+setTimeout(changeKey, 8900, 15, 60); //C Mix
+setTimeout(changeKey, 11000, 0, 60); //G ion 67
+
+setTimeout(changeKey, 20500, 12, 60); //F Dorian 65
+setTimeout(changeKey, 24200, 15, 60); //C Mix
+setTimeout(changeKey, 28100, 0, 60); //G ion 67
+setTimeout(changeKey, 29900, 12, 60); //F Dorian
+setTimeout(changeKey, 31800, 15, 60); //C Mix
+
+setTimeout(changeKey, 35600, 15, 60); //C Mix
+setTimeout(changeKey, 43300, 12, 60); //F Dorian 65
+setTimeout(changeKey, 47200, 15, 60); //C Mix
+setTimeout(changeKey, 51000, 0, 60); //G ion 67
+setTimeout(changeKey, 52800, 12, 60); //F Dorian
+setTimeout(changeKey, 54900, 15, 60); //C Mix
+gameLoop();
+</script>
+
+</html>
